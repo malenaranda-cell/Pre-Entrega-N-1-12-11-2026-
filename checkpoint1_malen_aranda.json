@@ -1,0 +1,271 @@
+{
+  "name": "Pre-Entrega Nº1 (12-11-2026)",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "responseNodes"
+        }
+      },
+      "id": "0d51fd69-e029-4b99-9e3a-2de39189c985",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "793f20f4-cbe1-40a0-9b30-57cb4a9bcb08"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=<entrada>\n{{ $json.chatInput }}\n</entrada>",
+        "options": {
+          "systemMessage": "Rol: Sos TeethBot, el asistente virtual de atención al paciente de la Clínica Odontológica Sonrisas.\nTarea: \n- Respondé las consultas de los pacientes. Para lograrlo, DEBÉS usar SIEMPRE tu herramienta conectada (leer_documento) para leer el documento oficial de la clínica antes de contestar. Si te preguntan algo fuera de los datos recuperados por la herramienta, respondé: \"No tengo esa información, pero puedo derivarte con un especialista.\"\n- Por cada \n- NO des diagnósticos médicos ni recetes medicamentos. \n- Si el paciente quiere agendar un turno o no podés resolver su duda, indicá: \"Voy a transferir esta conversación a uno de nuestros recepcionistas para que te asista.\"\nContexto: \n- El mensaje del paciente a procesar se encuentra delimitado entre las etiquetas <entrada> y </entrada> y se extrae del JSON de entrada.\n- Tu única fuente de verdad es la información que te devuelve la herramienta sobre la clínica. NO inventes precios, horarios ni asumas servicios que no te devuelva esa búsqueda.\nFormato de salida: Redactá un mensaje amable, empático y muy breve, optimizado para leerse rápido en WhatsApp. Devolvé únicamente la respuesta al usuario, sin explicar los pasos internos o qué herramienta usaste para buscar el dato. Si ya saludaste antes, NO vuelvas a repetir el saludo.",
+          "maxIterations": 5
+        }
+      },
+      "id": "0eff006b-1643-4f23-ab7c-25e875242850",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "message": "={{ $('AI Agent').item.json.output }}",
+        "options": {}
+      },
+      "id": "07459e7b-7352-4ebb-a72b-5e8d06e6e630",
+      "name": "Chat",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        0
+      ],
+      "webhookId": "c76b666e-f6c4-410b-a32c-62552bf60b01"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Usa esta herramienta para leer el documento con la información de horarios, precios y servicios de la clínica.",
+        "url": "https://docs.google.com/document/d/1DK1tv68npYtOn58huW1cm65c2DdLs_xRtolmk99YK_U/export?format=txt",
+        "options": {}
+      },
+      "id": "0d773110-ee77-4865-83d4-01feadb9daa0",
+      "name": "leer_documento",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        208
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "a3a577b0-a016-4364-9af5-a76baf7a5ba9",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        304,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        160,
+        208
+      ],
+      "id": "998222d9-182a-45a4-a350-9673c24bd60b",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "10hhXlduY8hWBQtBFqTUmGbVAp_E3fuFRYOxxG89QbMM",
+          "mode": "list",
+          "cachedResultName": "Registro_Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10hhXlduY8hWBQtBFqTUmGbVAp_E3fuFRYOxxG89QbMM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10hhXlduY8hWBQtBFqTUmGbVAp_E3fuFRYOxxG89QbMM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "CONSULTA": "={{ $('When chat message received').item.json.chatInput }}",
+            "ID MENSAJE RECIBIDO": "={{ $('When chat message received').item.json.sessionId }}",
+            "REPUESTA": "={{ $json.output }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID MENSAJE RECIBIDO",
+              "displayName": "ID MENSAJE RECIBIDO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CONSULTA",
+              "displayName": "CONSULTA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "REPUESTA",
+              "displayName": "REPUESTA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        576,
+        0
+      ],
+      "id": "26c84eb4-d51e-4a61-9e00-8b4acbcee0d8",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "JcLQLrMBm6hM0FxG",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "leer_documento": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "edcd65f5-544c-4b4b-bd3b-31e1df3f8de3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3e4109fde3306957f141bfcf2cb27bcad5737f2710beaf3ff0eac57e712cf844"
+  },
+  "nodeGroups": [],
+  "id": "0H4q3n2akOeYKWpW",
+  "tags": []
+}
